@@ -380,6 +380,10 @@
                 document.getElementById('titulo-vista').textContent = "Análisis Financiero Anual";
                 generarAnalisisAnual();
             }
+            // Si estamos en móvil, ocultar sidebar al cambiar de sección
+            if (window.innerWidth <= 768) {
+        document.querySelector('.sidebar').classList.remove('active');
+            }
         }
 
         // --- 5. LÓGICA DEL DASHBOARD ---
@@ -648,6 +652,20 @@ function cargarDesdeFirebase() {
         actualizarDashboard();
     });
 }
+
+// Cierra el sidebar al hacer clic fuera de él.
+document.addEventListener('click', function(event) {
+    const sidebar = document.querySelector('.sidebar');
+    const btnMenu = document.querySelector('.btn-menu');
+    
+    // Si el sidebar está abierto y el clic fue fuera del sidebar y fuera del botón de menú
+    if (sidebar.classList.contains('active') && 
+        !sidebar.contains(event.target) && 
+        !btnMenu.contains(event.target)) {
+        
+        sidebar.classList.remove('active');
+    }
+});
 
     </script>
 </body>
