@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Cloud</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -26,10 +26,16 @@
         body { background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; }
 
         /* Sidebar */
-        .sidebar { width: 260px; background-color: var(--bg-sidebar); padding: 20px 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); }
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); padding: 20px 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; flex-shrink: 0; }
+        .sidebar.collapsed { width: 0; padding: 0; border: none; }
+        .sidebar .sidebar-logo, .sidebar .menu-item, .sidebar .sidebar-footer { white-space: nowrap; }
         .sidebar-logo { font-size: 1.2rem; font-weight: bold; padding: 0 20px 20px 20px; color: var(--text-main); border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
         .menu-item { padding: 15px 20px; color: var(--text-muted); cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; }
         .menu-item:hover, .menu-item.active { background: rgba(225, 78, 202, 0.1); color: var(--neon-pink); border-left: 4px solid var(--neon-pink); }
+        .sidebar-footer { margin-top: auto; padding: 15px 20px; border-top: 1px solid var(--border-color); }
+        .sidebar-footer .usuario-actual { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+        .btn-logout { width: 100%; background: transparent; border: 1px solid #ff4757; color: #ff4757; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: 0.3s; }
+        .btn-logout:hover { background: #ff4757; color: white; }
 
         /* Main Content */
         .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
@@ -38,13 +44,13 @@
         .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; }
         .controls-header { display: flex; gap: 15px; align-items: center; flex-wrap: wrap;}
         select { background-color: var(--bg-card); color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 10px 20px; border-radius: 8px; font-size: 1rem; outline: none; cursor: pointer; }
-        
+
         .btn-cloud { background: linear-gradient(45deg, var(--neon-blue), var(--neon-cyan)); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 10px rgba(29, 140, 248, 0.3); }
         .btn-cloud:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(0, 242, 254, 0.6); }
-        
+
         .btn-agregar { background: linear-gradient(45deg, var(--neon-pink), #ff0844); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 10px rgba(225, 78, 202, 0.3); }
         .btn-agregar:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(225, 78, 202, 0.6); }
-        
+
         .btn-limpiar { background: #ff4757; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
         .btn-limpiar:hover { background: #ff6b81; transform: scale(1.05); }
 
@@ -62,21 +68,24 @@
         .gradient-1 { background: linear-gradient(45deg, #ff0844 0%, #ffb199 100%); }
         .gradient-2 { background: linear-gradient(45deg, #1d8cf8 0%, #3358f4 100%); }
         .gradient-3 { background: linear-gradient(45deg, #11998e 0%, #38ef7d 100%); }
+        .gradient-4 { background: linear-gradient(45deg, #8e2de2 0%, #4a00e0 100%); }
+        .gradient-5 { background: linear-gradient(45deg, #f7971e 0%, #ffd200 100%); }
+        .gradient-6 { background: linear-gradient(45deg, #c31432 0%, #240b36 100%); }
 
         /* Charts Grid */
         .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
         .chart-container { background-color: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); position: relative; height: 350px; }
-        
+
         /* Grid de Servicios Dinámicos para Análisis Anual */
         .grid-servicios { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
         .chart-box { background-color: var(--bg-card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); }
 
         /* Tables & Inputs */
-        .table-container { background-color: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); overflow-x: auto; }
+        .table-container { background-color: var(--bg-card); border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); overflow-x: auto; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
         th { color: var(--text-muted); font-weight: normal; font-size: 0.9rem; }
-        input[type="number"], input[type="text"] { width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; transition: 0.3s; }
+        input[type="number"], input[type="text"], input[type="password"] { width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; outline: none; transition: 0.3s; }
         input:focus, select:focus { border-color: var(--neon-blue); }
         select option { background-color: var(--bg-card); color: var(--text-main); }
         .input-concepto { font-weight: bold; background: transparent !important; border: 1px dashed transparent !important; padding: 5px !important; color: var(--text-main) !important; }
@@ -85,6 +94,9 @@
         .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
         .status-paid { color: #00f2c3; background: rgba(0, 242, 195, 0.1); border: 1px solid #00f2c3; }
         .status-pending { color: #ff8d72; background: rgba(255, 141, 114, 0.1); border: 1px solid #ff8d72; }
+        .rol-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
+        .rol-admin { color: #e14eca; background: rgba(225, 78, 202, 0.1); border: 1px solid #e14eca; }
+        .rol-usuario { color: #1d8cf8; background: rgba(29, 140, 248, 0.1); border: 1px solid #1d8cf8; }
 
         /* MODAL STYLES */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; opacity: 0; transition: opacity 0.3s ease; }
@@ -94,6 +106,7 @@
         .modal-content h3 { margin-bottom: 15px; color: var(--neon-pink); }
         .modal-content p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
         .modal-content input { margin-bottom: 20px; border-color: var(--neon-cyan); }
+        .modal-content label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
         .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
         .btn-cancelar { background: transparent; color: var(--text-muted); border: 1px solid var(--text-muted); padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .btn-cancelar:hover { background: rgba(255,255,255,0.1); color: white; }
@@ -115,6 +128,15 @@
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
+        /* --- LOGIN --- */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 3000; }
+        .login-box { background-color: var(--bg-card); padding: 40px; border-radius: 15px; width: 340px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--border-color); text-align: center; }
+        .login-box h2 { margin-bottom: 5px; color: var(--neon-pink); }
+        .login-box p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px; }
+        .login-box input { margin-bottom: 15px; }
+        .login-box .btn-cloud { width: 100%; padding: 12px; margin-top: 5px; }
+        #login-error { color: #ff4757; font-size: 0.85rem; min-height: 18px; margin-top: 10px; }
+
         /* --- ESTILOS RESPONSIVOS PARA MÓVIL --- */
         @media (max-width: 768px) {
             body { flex-direction: column; }
@@ -124,35 +146,55 @@
             .charts-grid { grid-template-columns: 1fr; }
             .cards-grid { grid-template-columns: 1fr; }
         }
-        .btn-menu { display: none; background: var(--neon-pink); color: white; border: none; padding: 10px; border-radius: 5px; margin-right: 15px; cursor: pointer; }
-        @media (max-width: 768px) { .btn-menu { display: block; } }
+        .btn-menu { display: block; background: var(--neon-pink); color: white; border: none; padding: 10px; border-radius: 5px; margin-right: 15px; cursor: pointer; font-size: 1rem; }
+        .btn-menu:hover { filter: brightness(1.1); }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
+    <!-- ===================== LOGIN ===================== -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>🔒 Acceso al Panel</h2>
+            <p>Ingrese sus credenciales para continuar</p>
+            <input type="text" id="login-usuario" placeholder="Usuario" onkeydown="if(event.key==='Enter') intentarLogin()">
+            <input type="password" id="login-password" placeholder="Contraseña" onkeydown="if(event.key==='Enter') intentarLogin()">
+            <button class="btn-cloud" onclick="intentarLogin()">Ingresar</button>
+            <div id="login-error"></div>
+        </div>
+    </div>
+
+    <nav class="sidebar" style="display:none;">
         <div class="sidebar-logo">⚙️Admin Dashboard 👀</div>
-        <div class="menu-item active" id="nav-dashboard" onclick="cambiarVista('dashboard')">Dashboard Principal</div>
+        <div class="menu-item active" id="nav-dashboard" onclick="cambiarVista('dashboard')">Resumen General</div>
+        <div class="menu-item" id="nav-papa" onclick="cambiarVista('papa')">Cuentas de Papá</div>
+        <div class="menu-item" id="nav-mama" onclick="cambiarVista('mama')">Cuentas de Mamá</div>
         <div class="menu-item" id="nav-reportes" onclick="cambiarVista('reportes')">Reportes Mensuales</div>
-        <div class="menu-item" id="nav-analisis" onclick="cambiarVista('analisis')">Análisis Anual</div>
+        <div class="menu-item" id="nav-analisis" onclick="cambiarVista('analisis')">Análisis Anual (Papá)</div>
+        <div class="menu-item" id="nav-usuarios" style="display:none;" onclick="cambiarVista('usuarios')">Usuarios y Permisos</div>
+        <div class="sidebar-footer">
+            <div class="usuario-actual" id="bienvenida-usuario"></div>
+            <button class="btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+        </div>
     </nav>
 
-    <main class="main-content">
-        
+    <main class="main-content" style="display:none;">
+
         <div class="header">
             <div style="display:flex; align-items:center;">
-                <button class="btn-menu" onclick="document.querySelector('.sidebar').classList.toggle('active')">☰</button>
-                <h2 id="titulo-vista">Panel de pagos mensuales by Mario Rugama</h2>
+                <button class="btn-menu" onclick="toggleSidebar()">☰</button>
+                <h2 id="titulo-vista">Resumen General - by Mario Rugama</h2>
             </div>
             <div class="controls-header">
-                <button class="btn-limpiar" onclick="limpiarDatos()">🧹 Limpiar todo</button> 
+                <button class="btn-limpiar" onclick="limpiarDatos()">🧹 Limpiar todo</button>
                 <button class="btn-cloud" onclick="guardarEnFirebase()">☁️ Save cloud</button>
             </div>
         </div>
 
+        <!-- ===================== RESUMEN GENERAL ===================== -->
         <div id="vista-dashboard" class="view-section active fade-in">
             <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-                <select id="select-mes" onchange="cambiarMes()">
+                <select id="select-mes" class="selector-mes" onchange="cambiarMes(this.value)">
                     <option value="Enero">Enero</option>
                     <option value="Febrero">Febrero</option>
                     <option value="Marzo">Marzo</option>
@@ -168,45 +210,137 @@
                 </select>
             </div>
 
+            <h3 style="color: var(--text-muted); margin-bottom: 10px;">Total General (Papá + Mamá)</h3>
             <div class="cards-grid">
-                <div class="card gradient-1">
-                    <div class="card-title" style="color: white;">Pendiente de Pago</div>
-                    <div class="card-value" id="card-pendiente">C$ 0.00</div>
+                <div class="card gradient-6">
+                    <div class="card-title" style="color: white;">Total Cuentas de Papá</div>
+                    <div class="card-value" id="card-total-papa-general">C$ 0.00</div>
                 </div>
-                <div class="card gradient-2">
-                    <div class="card-title" style="color: white;">Total Pagado</div>
-                    <div class="card-value" id="card-pagado">C$ 0.00</div>
+                <div class="card gradient-4">
+                    <div class="card-title" style="color: white;">Total Cuentas de Mamá</div>
+                    <div class="card-value" id="card-total-mama-general">C$ 0.00</div>
                 </div>
-                <div class="card gradient-3">
-                    <div class="card-title" style="color: white;">Gasto Total del Mes</div>
-                    <div class="card-value" id="card-total">C$ 0.00</div>
+                <div class="card gradient-5">
+                    <div class="card-title" style="color: white;">Total General del Mes</div>
+                    <div class="card-value" id="card-total-general">C$ 0.00</div>
                 </div>
             </div>
 
             <div class="charts-grid">
-                <div class="chart-container"><canvas id="barChart"></canvas></div>
+                <div class="chart-container"><canvas id="barChartGeneral"></canvas></div>
                 <div class="chart-container"><canvas id="doughnutChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ===================== CUENTAS DE PAPÁ ===================== -->
+        <div id="vista-papa" class="view-section fade-in">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <select class="selector-mes" onchange="cambiarMes(this.value)">
+                    <option value="Enero">Enero</option>
+                    <option value="Febrero">Febrero</option>
+                    <option value="Marzo">Marzo</option>
+                    <option value="Abril">Abril</option>
+                    <option value="Mayo">Mayo</option>
+                    <option value="Junio">Junio</option>
+                    <option value="Julio">Julio</option>
+                    <option value="Agosto">Agosto</option>
+                    <option value="Septiembre">Septiembre</option>
+                    <option value="Octubre">Octubre</option>
+                    <option value="Noviembre">Noviembre</option>
+                    <option value="Diciembre">Diciembre</option>
+                </select>
+            </div>
+            <div class="cards-grid">
+                <div class="card gradient-1">
+                    <div class="card-title" style="color: white;">Pendiente de Pago</div>
+                    <div class="card-value" id="card-pendiente-papa">C$ 0.00</div>
+                </div>
+                <div class="card gradient-2">
+                    <div class="card-title" style="color: white;">Total Pagado</div>
+                    <div class="card-value" id="card-pagado-papa">C$ 0.00</div>
+                </div>
+                <div class="card gradient-3">
+                    <div class="card-title" style="color: white;">Gasto Total del Mes</div>
+                    <div class="card-value" id="card-total-papa">C$ 0.00</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="barChart"></canvas>
             </div>
 
             <div class="table-container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Detalles de Facturación - <span id="label-mes">Enero</span></h3>
-                    <button class="btn-agregar" onclick="abrirModal()">➕ Agregar Cuenta</button>
+                    <h3>Detalles de Facturación (Papá) - <span id="label-mes-papa">Enero</span></h3>
+                    <button class="btn-agregar" onclick="abrirModal('papa')">➕ Agregar Cuenta</button>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 25%;">Concepto (Editable)</th>
+                            <th style="width: 25%;">Cuenta (Editable)</th>
                             <th style="width: 15%;">Monto (C$)</th>
                             <th style="width: 20%;">Estado</th>
                             <th style="width: 40%;">Detalles / Referencia</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-pagos"></tbody>
+                    <tbody id="tabla-pagos-papa"></tbody>
                 </table>
             </div>
         </div>
 
+        <!-- ===================== CUENTAS DE MAMÁ ===================== -->
+        <div id="vista-mama" class="view-section fade-in">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <select class="selector-mes" onchange="cambiarMes(this.value)">
+                    <option value="Enero">Enero</option>
+                    <option value="Febrero">Febrero</option>
+                    <option value="Marzo">Marzo</option>
+                    <option value="Abril">Abril</option>
+                    <option value="Mayo">Mayo</option>
+                    <option value="Junio">Junio</option>
+                    <option value="Julio">Julio</option>
+                    <option value="Agosto">Agosto</option>
+                    <option value="Septiembre">Septiembre</option>
+                    <option value="Octubre">Octubre</option>
+                    <option value="Noviembre">Noviembre</option>
+                    <option value="Diciembre">Diciembre</option>
+                </select>
+            </div>
+            <div class="cards-grid">
+                <div class="card gradient-1">
+                    <div class="card-title" style="color: white;">Pendiente de Pago</div>
+                    <div class="card-value" id="card-pendiente-mama">C$ 0.00</div>
+                </div>
+                <div class="card gradient-2">
+                    <div class="card-title" style="color: white;">Total Pagado</div>
+                    <div class="card-value" id="card-pagado-mama">C$ 0.00</div>
+                </div>
+                <div class="card gradient-3">
+                    <div class="card-title" style="color: white;">Gasto Total del Mes</div>
+                    <div class="card-value" id="card-total-mama">C$ 0.00</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Detalles de Facturación (Mamá) - <span id="label-mes-mama">Enero</span></h3>
+                    <button class="btn-agregar" onclick="abrirModal('mama')">➕ Agregar Cuenta</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Cuenta (Editable)</th>
+                            <th style="width: 15%;">Monto (C$)</th>
+                            <th style="width: 20%;">Estado</th>
+                            <th style="width: 40%;">Detalles / Referencia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-pagos-mama"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===================== REPORTES ===================== -->
         <div id="vista-reportes" class="view-section fade-in">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <select id="select-mes-reporte" onchange="generarReporte()"></select>
@@ -216,7 +350,8 @@
             <div class="reporte-papel">
                 <h2 style="text-align: center; margin-bottom: 5px;">Reporte de Obligaciones</h2>
                 <h4 style="text-align: center; color: #555; margin-bottom: 30px;">Mes: <span id="rep-mes-label"></span></h4>
-                
+
+                <h3 style="margin-bottom: 10px;">Cuentas de Papá</h3>
                 <table>
                     <thead>
                         <tr>
@@ -226,18 +361,39 @@
                             <th style="text-align: right;">Monto</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-reporte"></tbody>
+                    <tbody id="tabla-reporte-papa"></tbody>
                 </table>
-                <div style="text-align: right; margin-top: 20px; font-size: 1.5rem;">
-                    <strong>Total del Mes: </strong> <span id="rep-total" style="color: #e74c3c;">C$ 0.00</span>
+                <div style="text-align: right; margin-top: 10px; font-size: 1.1rem;">
+                    <strong>Subtotal Papá: </strong> <span id="rep-total-papa">C$ 0.00</span>
+                </div>
+
+                <h3 style="margin-top: 30px; margin-bottom: 10px;">Cuentas de Mamá</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Concepto</th>
+                            <th>Referencia</th>
+                            <th>Estado</th>
+                            <th style="text-align: right;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-reporte-mama"></tbody>
+                </table>
+                <div style="text-align: right; margin-top: 10px; font-size: 1.1rem;">
+                    <strong>Subtotal Mamá: </strong> <span id="rep-total-mama">C$ 0.00</span>
+                </div>
+
+                <div style="text-align: right; margin-top: 25px; font-size: 1.5rem; border-top: 2px solid #000; padding-top: 15px;">
+                    <strong>Total General del Mes: </strong> <span id="rep-total-general" style="color: #e74c3c;">C$ 0.00</span>
                 </div>
             </div>
         </div>
 
+        <!-- ===================== ANÁLISIS ANUAL ===================== -->
         <div id="vista-analisis" class="view-section fade-in">
             <div class="cards-grid" style="grid-template-columns: 1fr;">
                 <div class="card gradient-2" style="text-align: center; max-width: 600px; margin: 0 auto;">
-                    <div class="card-title" style="color: white;">Gasto Total Acumulado del Año</div>
+                    <div class="card-title" style="color: white;">Gasto Total Acumulado del Año (Papá)</div>
                     <div class="card-value" id="card-total-anual">C$ 0.00</div>
                 </div>
             </div>
@@ -249,13 +405,37 @@
 
             <hr style="border: 1px solid var(--border-color); margin: 30px 0;">
             <h2 style="text-align: center; margin-bottom: 10px;">Análisis de Tendencias por Servicio</h2>
-            <p style="text-align: center; color: var(--text-muted);">Evolución mensual de cada cuenta individual</p>
-            
+            <p style="text-align: center; color: var(--text-muted);">Evolución mensual de cada cuenta individual (Papá)</p>
+
             <div id="contenedor-graficos-dinamicos" class="grid-servicios"></div>
+        </div>
+
+        <!-- ===================== USUARIOS Y PERMISOS ===================== -->
+        <div id="vista-usuarios" class="view-section fade-in">
+            <div class="table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Usuarios del Sistema</h3>
+                    <button class="btn-agregar" onclick="abrirModalUsuario()">➕ Agregar Usuario</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Permiso</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-usuarios"></tbody>
+                </table>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.8rem;">
+                Nota: las contraseñas se guardan en la base de datos del panel para controlar el acceso; al ser una app 100% del lado del cliente, cualquiera con acceso al código fuente podría verlas, así que evita usar aquí una contraseña que uses en otro lugar importante.
+            </p>
         </div>
 
     </main>
 
+    <!-- Modal agregar cuenta (papá/mamá) -->
     <div id="modal-cuenta" class="modal-overlay">
         <div class="modal-content">
             <h3>Nueva Obligación</h3>
@@ -264,6 +444,26 @@
             <div class="modal-buttons">
                 <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
                 <button class="btn-cloud" onclick="guardarNuevaCuenta()">Guardar Cuenta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal agregar/editar usuario -->
+    <div id="modal-usuario" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-usuario-titulo">Nuevo Usuario</h3>
+            <label>Usuario</label>
+            <input type="text" id="input-usuario" placeholder="Ej. rugama1">
+            <label>Contraseña</label>
+            <input type="text" id="input-password" placeholder="Contraseña">
+            <label>Permiso</label>
+            <select id="input-rol" style="width:100%; margin-bottom: 20px;">
+                <option value="admin">Administrador</option>
+                <option value="usuario">Usuario</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="btn-cancelar" onclick="cerrarModalUsuario()">Cancelar</button>
+                <button class="btn-cloud" onclick="guardarUsuario()">Guardar Usuario</button>
             </div>
         </div>
     </div>
@@ -286,20 +486,31 @@
 
         // --- 2. DATOS BASE Y UTILIDADES ---
         const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        const conceptosBase = [
-            "Agua Taller", "Agua Maritza - Vi. Dignidad", "Electricidad Villa Dignidad", 
-            "Electricidad Taller", "Netfix", "Claro - Internet y cab. Finc", 
+        const conceptosBasePapa = [
+            "Agua Taller", "Agua Maritza - Vi. Dignidad", "Electricidad Villa Dignidad",
+            "Electricidad Taller", "Netfix", "Claro - Internet y cab. Finc",
             "Tigo - Internet Taller", "Inss Nom1", "Inatec Nom1", "Inss Nom2", "Inatec Nom2"
         ];
+        const conceptosBaseMama = []; // Se agregan manualmente con el botón "Agregar Cuenta"
 
-        let baseDatos = {};
+        let baseDatosPapa = {};
+        let baseDatosMama = {};
         meses.forEach(mes => {
-            baseDatos[mes] = conceptosBase.map(concepto => ({ concepto: concepto, monto: 0, estado: 'Pendiente', detalles: '' }));
+            baseDatosPapa[mes] = conceptosBasePapa.map(concepto => ({ concepto: concepto, monto: 0, estado: 'Pendiente', detalles: '' }));
+            baseDatosMama[mes] = conceptosBaseMama.map(concepto => ({ concepto: concepto, monto: 0, estado: 'Pendiente', detalles: '' }));
         });
 
+        function getBase(tipo) { return tipo === 'papa' ? baseDatosPapa : baseDatosMama; }
+
         let mesActual = 'Enero';
-        let barChart, doughnutChart, lineChartAnual;
-        let graficosServiciosActivos = []; // Array para guardar las instancias de los mini gráficos
+        let barChart, doughnutChart, lineChartAnual, barChartGeneral;
+        let graficosServiciosActivos = [];
+        let tipoModalCuenta = 'papa';
+
+        // --- USUARIOS / LOGIN ---
+        let usuariosSistema = [];
+        let usuarioActual = null;
+        let editandoUsuarioIndex = null;
 
         Chart.defaults.color = '#8b8b99';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
@@ -315,8 +526,139 @@
             selectorReporte.appendChild(opt);
         });
 
-        // --- 3. FUNCIONES DEL MODAL Y EDICIÓN DE CUENTAS ---
-        function abrirModal() {
+        // --- 3. LOGIN Y USUARIOS ---
+        function cargarUsuarios() {
+            db.collection("usuarios").doc("control_acceso").get().then((doc) => {
+                if (doc.exists && doc.data().listaUsuarios && doc.data().listaUsuarios.length > 0) {
+                    usuariosSistema = doc.data().listaUsuarios;
+                } else {
+                    usuariosSistema = [{ usuario: 'rugama1', password: '2711', rol: 'admin' }];
+                    guardarUsuarios();
+                }
+            }).catch(() => {
+                usuariosSistema = [{ usuario: 'rugama1', password: '2711', rol: 'admin' }];
+            });
+        }
+
+        function guardarUsuarios() {
+            db.collection("usuarios").doc("control_acceso").set({ listaUsuarios: usuariosSistema })
+                .catch(err => console.error("Error guardando usuarios: ", err));
+        }
+
+        function intentarLogin() {
+            const u = document.getElementById('login-usuario').value.trim();
+            const p = document.getElementById('login-password').value;
+            const encontrado = usuariosSistema.find(x => x.usuario === u && x.password === p);
+
+            if (encontrado) {
+                usuarioActual = encontrado;
+                document.getElementById('login-overlay').style.display = 'none';
+                document.querySelector('.sidebar').style.display = 'flex';
+                document.querySelector('.main-content').style.display = 'flex';
+                document.getElementById('bienvenida-usuario').textContent = 'Usuario: ' + usuarioActual.usuario + ' (' + (usuarioActual.rol === 'admin' ? 'Admin' : 'Usuario') + ')';
+                if (usuarioActual.rol === 'admin') {
+                    document.getElementById('nav-usuarios').style.display = 'block';
+                }
+                inicializarGraficos();
+                cargarDesdeFirebase();
+            } else {
+                document.getElementById('login-error').textContent = 'Usuario o contraseña incorrectos.';
+            }
+        }
+
+        function cerrarSesion() {
+            location.reload();
+        }
+
+        function abrirModalUsuario(index = null) {
+            editandoUsuarioIndex = index;
+            document.getElementById('modal-usuario').classList.add('active');
+            if (index !== null) {
+                document.getElementById('modal-usuario-titulo').textContent = 'Editar Usuario';
+                document.getElementById('input-usuario').value = usuariosSistema[index].usuario;
+                document.getElementById('input-password').value = usuariosSistema[index].password;
+                document.getElementById('input-rol').value = usuariosSistema[index].rol;
+            } else {
+                document.getElementById('modal-usuario-titulo').textContent = 'Nuevo Usuario';
+                document.getElementById('input-usuario').value = '';
+                document.getElementById('input-password').value = '';
+                document.getElementById('input-rol').value = 'usuario';
+            }
+        }
+
+        function cerrarModalUsuario() {
+            document.getElementById('modal-usuario').classList.remove('active');
+        }
+
+        function guardarUsuario() {
+            const usuario = document.getElementById('input-usuario').value.trim();
+            const password = document.getElementById('input-password').value.trim();
+            const rol = document.getElementById('input-rol').value;
+
+            if (!usuario || !password) {
+                alert('Complete el usuario y la contraseña.');
+                return;
+            }
+
+            const duplicado = usuariosSistema.some((u, i) => u.usuario === usuario && i !== editandoUsuarioIndex);
+            if (duplicado) {
+                alert('Ese nombre de usuario ya existe.');
+                return;
+            }
+
+            if (editandoUsuarioIndex !== null) {
+                usuariosSistema[editandoUsuarioIndex] = { usuario, password, rol };
+                if (usuarioActual && usuarioActual.usuario === usuariosSistema[editandoUsuarioIndex].usuario) {
+                    usuarioActual = { usuario, password, rol };
+                }
+            } else {
+                usuariosSistema.push({ usuario, password, rol });
+            }
+
+            guardarUsuarios();
+            renderizarUsuarios();
+            cerrarModalUsuario();
+        }
+
+        function eliminarUsuario(index) {
+            if (usuariosSistema.length <= 1) {
+                alert('Debe existir al menos un usuario en el sistema.');
+                return;
+            }
+            if (usuariosSistema[index].usuario === usuarioActual.usuario) {
+                alert('No puede eliminar el usuario con el que ha iniciado sesión.');
+                return;
+            }
+            if (confirm('¿Eliminar este usuario?')) {
+                usuariosSistema.splice(index, 1);
+                guardarUsuarios();
+                renderizarUsuarios();
+            }
+        }
+
+        function renderizarUsuarios() {
+            const tbody = document.getElementById('tabla-usuarios');
+            tbody.innerHTML = '';
+            usuariosSistema.forEach((u, i) => {
+                const tr = document.createElement('tr');
+                const badgeClass = u.rol === 'admin' ? 'rol-admin' : 'rol-usuario';
+                tr.innerHTML = `
+                    <td>${u.usuario}</td>
+                    <td><span class="rol-badge ${badgeClass}">${u.rol === 'admin' ? 'Administrador' : 'Usuario'}</span></td>
+                    <td>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <button class="btn-agregar" onclick="abrirModalUsuario(${i})">✏️ Editar</button>
+                            <button onclick="eliminarUsuario(${i})" style="background:transparent; border:none; color:#ff4757; cursor:pointer; font-size: 1.2rem;" title="Eliminar usuario">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- 4. FUNCIONES DEL MODAL Y EDICIÓN DE CUENTAS (PAPÁ / MAMÁ) ---
+        function abrirModal(tipo) {
+            tipoModalCuenta = tipo;
             document.getElementById('modal-cuenta').classList.add('active');
             document.getElementById('input-nueva-cuenta').value = '';
             document.getElementById('input-nueva-cuenta').focus();
@@ -331,12 +673,13 @@
             const nuevoConcepto = input.value.trim();
 
             if (nuevoConcepto !== "") {
+                const base = getBase(tipoModalCuenta);
                 meses.forEach(mes => {
-                    baseDatos[mes].push({ concepto: nuevoConcepto, monto: 0, estado: 'Pendiente', detalles: '' });
+                    base[mes].push({ concepto: nuevoConcepto, monto: 0, estado: 'Pendiente', detalles: '' });
                 });
-                
+
                 cerrarModal();
-                renderizarTabla();
+                if (tipoModalCuenta === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
                 actualizarDashboard();
                 guardarEnFirebase();
             } else {
@@ -344,25 +687,37 @@
             }
         }
 
-        function actualizarNombreCuenta(index, nuevoNombre) {
+        function actualizarNombreCuenta(index, nuevoNombre, tipo) {
             const nombreLimpio = nuevoNombre.trim();
             if (nombreLimpio !== "") {
-                meses.forEach(mes => { baseDatos[mes][index].concepto = nombreLimpio; });
+                const base = getBase(tipo);
+                meses.forEach(mes => { base[mes][index].concepto = nombreLimpio; });
                 actualizarDashboard();
                 guardarEnFirebase();
             }
         }
 
-        function eliminarCuenta(index) {
-            if(confirm("¿Estás seguro de eliminar esta cuenta? Se borrará de todo el año.")) {
-                meses.forEach(mes => { baseDatos[mes].splice(index, 1); });
-                renderizarTabla();
+        function eliminarCuenta(index, tipo) {
+            if (confirm("¿Estás seguro de eliminar esta cuenta? Se borrará de todo el año.")) {
+                const base = getBase(tipo);
+                meses.forEach(mes => { base[mes].splice(index, 1); });
+                if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
                 actualizarDashboard();
                 guardarEnFirebase();
             }
         }
 
-        // --- 4. NAVEGACIÓN ENTRE VISTAS ---
+        // --- Mostrar/ocultar la cortina de opciones (sidebar) ---
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        // --- 5. NAVEGACIÓN ENTRE VISTAS ---
         function cambiarVista(vista) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
@@ -371,39 +726,47 @@
             document.getElementById('nav-' + vista).classList.add('active');
 
             if (vista === 'dashboard') {
-                document.getElementById('titulo-vista').textContent = "Panel de Obligaciones";
+                document.getElementById('titulo-vista').textContent = "Resumen General";
+                actualizarDashboard();
+            } else if (vista === 'papa') {
+                document.getElementById('titulo-vista').textContent = "Cuentas de Papá";
+                actualizarDashboard();
+            } else if (vista === 'mama') {
+                document.getElementById('titulo-vista').textContent = "Cuentas de Mamá";
                 actualizarDashboard();
             } else if (vista === 'reportes') {
                 document.getElementById('titulo-vista').textContent = "Reporte para Impresión";
                 generarReporte();
             } else if (vista === 'analisis') {
-                document.getElementById('titulo-vista').textContent = "Análisis Financiero Anual";
+                document.getElementById('titulo-vista').textContent = "Análisis Financiero Anual (Papá)";
                 generarAnalisisAnual();
+            } else if (vista === 'usuarios') {
+                document.getElementById('titulo-vista').textContent = "Usuarios y Permisos";
+                renderizarUsuarios();
             }
-            // Si estamos en móvil, ocultar sidebar al cambiar de sección
             if (window.innerWidth <= 768) {
-        document.querySelector('.sidebar').classList.remove('active');
+                document.querySelector('.sidebar').classList.remove('active');
             }
         }
 
-        // --- 5. LÓGICA DEL DASHBOARD ---
-        function renderizarTabla() {
-            const tbody = document.getElementById('tabla-pagos');
+        // --- 6. LÓGICA DEL DASHBOARD ---
+        function renderizarTablaPapa() {
+            const tbody = document.getElementById('tabla-pagos-papa');
             tbody.innerHTML = '';
-            document.getElementById('label-mes').textContent = mesActual;
+            document.getElementById('label-mes-papa').textContent = mesActual;
 
-            baseDatos[mesActual].forEach((item, index) => {
+            baseDatosPapa[mesActual].forEach((item, index) => {
                 const tr = document.createElement('tr');
                 const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
-                
+
                 tr.innerHTML = `
                     <td>
-                        <input type="text" class="input-concepto" value="${item.concepto}" 
-                               onchange="actualizarNombreCuenta(${index}, this.value)">
+                        <input type="text" class="input-concepto" value="${item.concepto}"
+                               onchange="actualizarNombreCuenta(${index}, this.value, 'papa')">
                     </td>
-                    <td><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value)"></td>
+                    <td><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value, 'papa')"></td>
                     <td>
-                        <select onchange="actualizarDato(${index}, 'estado', this.value)" style="margin-bottom:5px;">
+                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'papa')" style="margin-bottom:5px;">
                             <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Pagado" ${item.estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
                         </select>
@@ -411,8 +774,8 @@
                     </td>
                     <td>
                         <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="text" value="${item.detalles}" oninput="actualizarDato(${index}, 'detalles', this.value)">
-                            <button onclick="eliminarCuenta(${index})" style="background:transparent; border:none; color:#ff4757; cursor:pointer; font-size: 1.2rem;" title="Eliminar cuenta">🗑️</button>
+                            <input type="text" value="${item.detalles}" oninput="actualizarDato(${index}, 'detalles', this.value, 'papa')">
+                            <button onclick="eliminarCuenta(${index}, 'papa')" style="background:transparent; border:none; color:#ff4757; cursor:pointer; font-size: 1.2rem;" title="Eliminar cuenta">🗑️</button>
                         </div>
                     </td>
                 `;
@@ -420,50 +783,129 @@
             });
         }
 
-        function cambiarMes() {
-            mesActual = document.getElementById('select-mes').value;
-            renderizarTabla();
+        function renderizarTablaMama() {
+            const tbody = document.getElementById('tabla-pagos-mama');
+            tbody.innerHTML = '';
+            document.getElementById('label-mes-mama').textContent = mesActual;
+
+            baseDatosMama[mesActual].forEach((item, index) => {
+                const tr = document.createElement('tr');
+                const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
+
+                tr.innerHTML = `
+                    <td>
+                        <input type="text" class="input-concepto" value="${item.concepto}"
+                               onchange="actualizarNombreCuenta(${index}, this.value, 'mama')">
+                    </td>
+                    <td><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value, 'mama')"></td>
+                    <td>
+                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'mama')" style="margin-bottom:5px;">
+                            <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="Pagado" ${item.estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
+                        </select>
+                        <br><span class="status-badge ${badgeClass}">${item.estado}</span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" value="${item.detalles}" oninput="actualizarDato(${index}, 'detalles', this.value, 'mama')">
+                            <button onclick="eliminarCuenta(${index}, 'mama')" style="background:transparent; border:none; color:#ff4757; cursor:pointer; font-size: 1.2rem;" title="Eliminar cuenta">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function cambiarMes(valor) {
+            mesActual = valor;
+            // Mantiene todos los selectores de mes (Resumen, Papá, Mamá) sincronizados
+            document.querySelectorAll('.selector-mes').forEach(sel => { sel.value = mesActual; });
+            renderizarTablaPapa();
+            renderizarTablaMama();
             actualizarDashboard();
         }
 
-        function actualizarDato(index, campo, valor) {
-            if (campo === 'monto') baseDatos[mesActual][index][campo] = parseFloat(valor) || 0;
-            else baseDatos[mesActual][index][campo] = valor;
-            
+        // --- Autoguardado en la nube (con retraso para no saturar Firebase mientras se escribe) ---
+        let temporizadorAutoguardado = null;
+        function autoguardar() {
+            clearTimeout(temporizadorAutoguardado);
+            temporizadorAutoguardado = setTimeout(() => { guardarEnFirebase(); }, 900);
+        }
+
+        function actualizarDato(index, campo, valor, tipo) {
+            const base = getBase(tipo);
+            if (campo === 'monto') base[mesActual][index][campo] = parseFloat(valor) || 0;
+            else base[mesActual][index][campo] = valor;
+
             actualizarDashboard();
-            if(campo === 'estado') renderizarTabla();
+            if (campo === 'estado') {
+                if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
+            }
+            autoguardar();
         }
 
         function actualizarDashboard() {
-            if(!barChart) return;
-            const datosDelMes = baseDatos[mesActual];
-            const totalPendiente = datosDelMes.filter(d => d.estado === 'Pendiente').reduce((sum, d) => sum + d.monto, 0);
-            const totalPagado = datosDelMes.filter(d => d.estado === 'Pagado').reduce((sum, d) => sum + d.monto, 0);
-            
-            document.getElementById('card-pendiente').textContent = `C$ ${formatoMoneda(totalPendiente)}`;
-            document.getElementById('card-pagado').textContent = `C$ ${formatoMoneda(totalPagado)}`;
-            document.getElementById('card-total').textContent = `C$ ${formatoMoneda(totalPendiente + totalPagado)}`;
+            if (!barChart) return;
+            const datosPapa = baseDatosPapa[mesActual];
+            const datosMama = baseDatosMama[mesActual];
 
-            barChart.data.labels = datosDelMes.map(d => d.concepto.substring(0, 12));
-            barChart.data.datasets[0].data = datosDelMes.map(d => d.monto);
+            const pendientePapa = datosPapa.filter(d => d.estado === 'Pendiente').reduce((sum, d) => sum + d.monto, 0);
+            const pagadoPapa = datosPapa.filter(d => d.estado === 'Pagado').reduce((sum, d) => sum + d.monto, 0);
+            const totalPapa = pendientePapa + pagadoPapa;
+
+            const pendienteMama = datosMama.filter(d => d.estado === 'Pendiente').reduce((sum, d) => sum + d.monto, 0);
+            const pagadoMama = datosMama.filter(d => d.estado === 'Pagado').reduce((sum, d) => sum + d.monto, 0);
+            const totalMama = pendienteMama + pagadoMama;
+
+            const totalGeneral = totalPapa + totalMama;
+
+            // Cards Papá
+            document.getElementById('card-pendiente-papa').textContent = `C$ ${formatoMoneda(pendientePapa)}`;
+            document.getElementById('card-pagado-papa').textContent = `C$ ${formatoMoneda(pagadoPapa)}`;
+            document.getElementById('card-total-papa').textContent = `C$ ${formatoMoneda(totalPapa)}`;
+
+            // Cards Mamá
+            document.getElementById('card-pendiente-mama').textContent = `C$ ${formatoMoneda(pendienteMama)}`;
+            document.getElementById('card-pagado-mama').textContent = `C$ ${formatoMoneda(pagadoMama)}`;
+            document.getElementById('card-total-mama').textContent = `C$ ${formatoMoneda(totalMama)}`;
+
+            // Cards Resumen General
+            document.getElementById('card-total-papa-general').textContent = `C$ ${formatoMoneda(totalPapa)}`;
+            document.getElementById('card-total-mama-general').textContent = `C$ ${formatoMoneda(totalMama)}`;
+            document.getElementById('card-total-general').textContent = `C$ ${formatoMoneda(totalGeneral)}`;
+
+            // Chart barras Papá (por concepto)
+            barChart.data.labels = datosPapa.map(d => d.concepto.substring(0, 12));
+            barChart.data.datasets[0].data = datosPapa.map(d => d.monto);
             barChart.update();
 
-            doughnutChart.data.datasets[0].data = [totalPagado, totalPendiente];
+            // Doughnut general (pagado vs pendiente, ambas cuentas)
+            doughnutChart.data.datasets[0].data = [pagadoPapa + pagadoMama, pendientePapa + pendienteMama];
             doughnutChart.update();
+
+            // Barras comparativas Papá vs Mamá
+            if (barChartGeneral) {
+                barChartGeneral.data.datasets[0].data = [totalPapa, totalMama];
+                barChartGeneral.update();
+            }
         }
 
-        // --- 6. LÓGICA DE REPORTES ---
+        // --- 7. LÓGICA DE REPORTES ---
         function generarReporte() {
             const mesSelec = document.getElementById('select-mes-reporte').value;
             document.getElementById('rep-mes-label').textContent = mesSelec;
-            const tbody = document.getElementById('tabla-reporte');
-            tbody.innerHTML = '';
-            
-            let granTotal = 0;
 
-            baseDatos[mesSelec].forEach(item => {
-                if(item.monto > 0) { 
-                    granTotal += item.monto;
+            const tbodyPapa = document.getElementById('tabla-reporte-papa');
+            const tbodyMama = document.getElementById('tabla-reporte-mama');
+            tbodyPapa.innerHTML = '';
+            tbodyMama.innerHTML = '';
+
+            let totalPapa = 0;
+            let totalMama = 0;
+
+            baseDatosPapa[mesSelec].forEach(item => {
+                if (item.monto > 0) {
+                    totalPapa += item.monto;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><strong>${item.concepto}</strong></td>
@@ -471,47 +913,61 @@
                         <td>${item.estado}</td>
                         <td style="text-align: right;">C$ ${formatoMoneda(item.monto)}</td>
                     `;
-                    tbody.appendChild(tr);
+                    tbodyPapa.appendChild(tr);
                 }
             });
-
-            if(granTotal === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos registrados este mes.</td></tr>';
+            if (totalPapa === 0) {
+                tbodyPapa.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos registrados este mes.</td></tr>';
             }
-            document.getElementById('rep-total').textContent = `C$ ${formatoMoneda(granTotal)}`;
+
+            baseDatosMama[mesSelec].forEach(item => {
+                if (item.monto > 0) {
+                    totalMama += item.monto;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${item.concepto}</strong></td>
+                        <td>${item.detalles || 'N/A'}</td>
+                        <td>${item.estado}</td>
+                        <td style="text-align: right;">C$ ${formatoMoneda(item.monto)}</td>
+                    `;
+                    tbodyMama.appendChild(tr);
+                }
+            });
+            if (totalMama === 0) {
+                tbodyMama.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos registrados este mes.</td></tr>';
+            }
+
+            document.getElementById('rep-total-papa').textContent = `C$ ${formatoMoneda(totalPapa)}`;
+            document.getElementById('rep-total-mama').textContent = `C$ ${formatoMoneda(totalMama)}`;
+            document.getElementById('rep-total-general').textContent = `C$ ${formatoMoneda(totalPapa + totalMama)}`;
         }
 
-        // --- 7. LÓGICA DE ANÁLISIS ANUAL Y GRÁFICOS DINÁMICOS ---
+        // --- 8. LÓGICA DE ANÁLISIS ANUAL Y GRÁFICOS DINÁMICOS (PAPÁ) ---
         function generarAnalisisAnual() {
             let totalAnual = 0;
-            
-            // 1. Actualizar Gráfico Global Anual
+
             const datosPorMes = meses.map(mes => {
-                const sumaMes = baseDatos[mes].reduce((sum, item) => sum + item.monto, 0);
+                const sumaMes = baseDatosPapa[mes].reduce((sum, item) => sum + item.monto, 0);
                 totalAnual += sumaMes;
                 return sumaMes;
             });
 
-const cardAnual = document.getElementById('card-total-anual');
-if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;            
-            if(lineChartAnual) {
+            const cardAnual = document.getElementById('card-total-anual');
+            if (cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
+            if (lineChartAnual) {
                 lineChartAnual.data.datasets[0].data = datosPorMes;
                 lineChartAnual.update();
             }
 
-            // 2. Generar Gráficos Individuales por Servicio
             const contenedor = document.getElementById('contenedor-graficos-dinamicos');
-            contenedor.innerHTML = ''; // Limpiar div
+            contenedor.innerHTML = '';
 
-            // Destruir instancias previas de Chart.js para evitar el error "Canvas is already in use"
             graficosServiciosActivos.forEach(chart => chart.destroy());
             graficosServiciosActivos = [];
 
-            // Obtenemos todos los conceptos de Enero (como base)
-            const conceptosUnicos = baseDatos['Enero'].map(item => item.concepto);
+            const conceptosUnicos = baseDatosPapa['Enero'].map(item => item.concepto);
 
             conceptosUnicos.forEach((concepto, i) => {
-                // Crear el HTML para cada gráfico
                 const div = document.createElement('div');
                 div.className = 'chart-box';
                 div.innerHTML = `
@@ -522,22 +978,19 @@ if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
                 `;
                 contenedor.appendChild(div);
 
-                // Recopilar los datos de este concepto en los 12 meses
                 const datosServicio = meses.map(mes => {
-                    const item = baseDatos[mes].find(d => d.concepto === concepto);
+                    const item = baseDatosPapa[mes].find(d => d.concepto === concepto);
                     return item ? item.monto : 0;
                 });
 
-                // Colores dinámicos alternados
                 const colorLinea = i % 2 === 0 ? '#e14eca' : '#00f2c3';
                 const colorFondo = i % 2 === 0 ? 'rgba(225, 78, 202, 0.1)' : 'rgba(0, 242, 195, 0.1)';
 
-                // Dibujar el gráfico
                 const ctx = document.getElementById(`chart-serv-${i}`).getContext('2d');
                 const nuevoGrafico = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: meses.map(m => m.substring(0,3)), // "Ene", "Feb", etc.
+                        labels: meses.map(m => m.substring(0,3)),
                         datasets: [{
                             label: 'C$',
                             data: datosServicio,
@@ -550,8 +1003,8 @@ if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
                             pointRadius: 3
                         }]
                     },
-                    options: { 
-                        responsive: true, 
+                    options: {
+                        responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
@@ -560,16 +1013,17 @@ if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
                         }
                     }
                 });
-                
+
                 graficosServiciosActivos.push(nuevoGrafico);
             });
         }
 
-        // --- 8. INICIALIZACIÓN Y FIREBASE ---
+        // --- 9. INICIALIZACIÓN Y FIREBASE ---
         function inicializarGraficos() {
             const ctxBar = document.getElementById('barChart').getContext('2d');
             const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
             const ctxLine = document.getElementById('lineChartAnual').getContext('2d');
+            const ctxBarGeneral = document.getElementById('barChartGeneral').getContext('2d');
 
             let gradientBar = ctxBar.createLinearGradient(0, 0, 0, 400);
             gradientBar.addColorStop(0, '#e14eca'); gradientBar.addColorStop(1, '#1d8cf8');
@@ -608,6 +1062,19 @@ if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
                     }
                 }
             });
+
+            barChartGeneral = new Chart(ctxBarGeneral, {
+                type: 'bar',
+                data: {
+                    labels: ['Cuentas de Papá', 'Cuentas de Mamá'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: ['#c31432', '#8e2de2'],
+                        borderRadius: 8
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
         }
 
         function mostrarToast() {
@@ -617,7 +1084,7 @@ if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
         }
 
         function guardarEnFirebase() {
-            db.collection("usuarios").doc("cuenta_principal").set({ datosAnuales: baseDatos })
+            db.collection("usuarios").doc("cuenta_principal").set({ datosAnuales: baseDatosPapa, datosAnualesMama: baseDatosMama })
             .then(() => mostrarToast())
             .catch(err => console.error("Error: ", err));
         }
@@ -625,47 +1092,47 @@ if(cardAnual) cardAnual.textContent = `C$ ${formatoMoneda(totalAnual)}`;
         function limpiarDatos() {
             if (confirm("¿Estás seguro de que deseas limpiar todos los datos del año? Esta acción no se puede deshacer.")) {
                 meses.forEach(mes => {
-                    baseDatos[mes].forEach(item => {
-                        item.monto = 0;
-                        item.estado = 'Pendiente';
-                        item.detalles = '';
+                    baseDatosPapa[mes].forEach(item => {
+                        item.monto = 0; item.estado = 'Pendiente'; item.detalles = '';
+                    });
+                    baseDatosMama[mes].forEach(item => {
+                        item.monto = 0; item.estado = 'Pendiente'; item.detalles = '';
                     });
                 });
-                renderizarTabla();
+                renderizarTablaPapa();
+                renderizarTablaMama();
                 actualizarDashboard();
                 guardarEnFirebase();
             }
         }
 
-        // --- ARRANQUE ---
-inicializarGraficos();
-// Eliminamos las llamadas aquí y las movemos dentro de cargarDesdeFirebase
-cargarDesdeFirebase(); 
-
-function cargarDesdeFirebase() {
-    db.collection("usuarios").doc("cuenta_principal").get().then((doc) => {
-        if (doc.exists && doc.data().datosAnuales) {
-            baseDatos = doc.data().datosAnuales;
+        function cargarDesdeFirebase() {
+            db.collection("usuarios").doc("cuenta_principal").get().then((doc) => {
+                if (doc.exists) {
+                    if (doc.data().datosAnuales) baseDatosPapa = doc.data().datosAnuales;
+                    if (doc.data().datosAnualesMama) baseDatosMama = doc.data().datosAnualesMama;
+                }
+                renderizarTablaPapa();
+                renderizarTablaMama();
+                actualizarDashboard();
+            });
         }
-        // Llamar a estas funciones SOLO después de haber procesado los datos
-        renderizarTabla();
-        actualizarDashboard();
-    });
-}
 
-// Cierra el sidebar al hacer clic fuera de él.
-document.addEventListener('click', function(event) {
-    const sidebar = document.querySelector('.sidebar');
-    const btnMenu = document.querySelector('.btn-menu');
-    
-    // Si el sidebar está abierto y el clic fue fuera del sidebar y fuera del botón de menú
-    if (sidebar.classList.contains('active') && 
-        !sidebar.contains(event.target) && 
-        !btnMenu.contains(event.target)) {
-        
-        sidebar.classList.remove('active');
-    }
-});
+        // --- ARRANQUE ---
+        cargarUsuarios();
+
+        // Cierra el sidebar al hacer clic fuera de él.
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.sidebar');
+            const btnMenu = document.querySelector('.btn-menu');
+
+            if (sidebar.classList.contains('active') &&
+                !sidebar.contains(event.target) &&
+                !btnMenu.contains(event.target)) {
+
+                sidebar.classList.remove('active');
+            }
+        });
 
     </script>
 </body>
