@@ -35,7 +35,8 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; }
+        html, body { min-height: 100%; height: 100%; }
+        body { background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; overflow-y: auto; }
 
         /* Sidebar */
         .sidebar { width: 260px; background-color: var(--bg-sidebar); padding: 20px 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; flex-shrink: 0; }
@@ -50,7 +51,7 @@
         .btn-logout:hover { background: #ff4757; color: white; }
 
         /* Main Content */
-        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow: visible; }
 
         /* Botones y Controles */
         .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; }
@@ -160,10 +161,11 @@
 
         /* --- ESTILOS RESPONSIVOS PARA MÓVIL --- */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
+            html, body { min-height: 100%; height: auto; }
+            body { flex-direction: column; overflow-y: auto; }
             .sidebar { position: fixed; left: -260px; top: 0; height: 100%; z-index: 2000; transition: 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
             .sidebar.active { left: 0; }
-            .main-content { padding: 15px; }
+            .main-content { padding: 15px; overflow: visible; }
             .charts-grid { grid-template-columns: 1fr; }
             .cards-grid { grid-template-columns: 1fr; }
 
@@ -172,13 +174,13 @@
             .table-container thead { display: none; }
             .table-container tbody { display: block; }
             .table-container tbody tr { display: block; margin-bottom: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(255,255,255,0.03); }
-            .table-container td { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border: none; }
+            .table-container td { display: block; padding: 10px 0; border: none; }
             .table-container td + td { border-top: 1px solid rgba(255,255,255,0.08); }
-            .table-container td::before { content: attr(data-label); color: var(--text-muted); font-size: 0.82rem; flex: 1 1 100%; margin-right: 12px; white-space: normal; }
-            .table-container td > * { flex: 1 1 100%; min-width: 0; }
+            .table-container td::before { content: attr(data-label); color: var(--text-muted); font-size: 0.82rem; display: block; margin-bottom: 6px; white-space: normal; }
+            .table-container td > * { display: block; width: 100%; min-width: 0; }
             .table-container td input, .table-container td select, .table-container td button { width: 100%; }
-            .table-container td:last-child { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .table-container td:last-child button { width: auto; }
+            .table-container td:last-child { padding-bottom: 0; }
+            .table-container td:last-child button { width: 100%; }
             .table-container td input.input-concepto { white-space: normal; overflow-wrap: anywhere; }
             .table-container tr td:first-child { padding-top: 0; }
         }
