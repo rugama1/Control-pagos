@@ -316,8 +316,11 @@
             </div>
 
             <div class="table-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Detalles de Facturación (Papá) - <span id="label-mes-papa">Enero</span></h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <h3>Detalles de Facturación (Papá) - <span id="label-mes-papa">Enero</span></h3>
+                        <button id="btn-mostrar-pagadas-papa" class="btn-agregar" onclick="toggleMostrarPagadas('papa')" style="display:none;">Mostrar cuentas pagadas</button>
+                    </div>
                     <button class="btn-agregar" onclick="abrirModal('papa')">➕ Agregar Cuenta</button>
                 </div>
                 <table>
@@ -368,8 +371,11 @@
             </div>
 
             <div class="table-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Detalles de Facturación (Mamá) - <span id="label-mes-mama">Enero</span></h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <h3>Detalles de Facturación (Mamá) - <span id="label-mes-mama">Enero</span></h3>
+                        <button id="btn-mostrar-pagadas-mama" class="btn-agregar" onclick="toggleMostrarPagadas('mama')" style="display:none;">Mostrar cuentas pagadas</button>
+                    </div>
                     <button class="btn-agregar" onclick="abrirModal('mama')">➕ Agregar Cuenta</button>
                 </div>
                 <table>
@@ -549,6 +555,8 @@
         function getBase(tipo) { return tipo === 'papa' ? baseDatosPapa : baseDatosMama; }
 
         let mesActual = 'Enero';
+        let mostrarCuentasPagadasPapa = false;
+        let mostrarCuentasPagadasMama = false;
         let barChart, doughnutChart, lineChartAnual, barChartGeneral;
         let graficosServiciosActivos = [];
         let tipoModalCuenta = 'papa';
@@ -801,13 +809,19 @@
             tbody.innerHTML = '';
             document.getElementById('label-mes-papa').textContent = mesActual;
 
-            let pendientesPapa = 0;
-            baseDatosPapa[mesActual].forEach((item, index) => {
+            const cuentasPapa = baseDatosPapa[mesActual];
+            const pendientesPapa = cuentasPapa.filter(item => item.estado === 'Pendiente').length;
+            const pagadasPapa = cuentasPapa.filter(item => item.estado === 'Pagado').length;
+            const mostrarPagadasPapa = mostrarCuentasPagadasPapa;
+
+            const cuentasVisibles = cuentasPapa.filter(item => item.estado !== 'Pagado' || mostrarPagadasPapa);
+            cuentasPapa.forEach((item, index) => {
+                if (item.estado === 'Pagado' && !mostrarPagadasPapa) return;
+
                 const tr = document.createElement('tr');
                 const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
                 const rowClass = item.estado === 'Pagado' ? 'row-paid' : 'row-pending';
                 tr.className = rowClass;
-                if (item.estado === 'Pendiente') pendientesPapa += 1;
 
                 tr.innerHTML = `
                     <td data-label="Cuenta">
@@ -831,9 +845,16 @@
                 `;
                 tbody.appendChild(tr);
             });
-            if (pendientesPapa === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+
+            if (cuentasVisibles.length === 0) {
+                if (pendientesPapa === 0 && pagadasPapa > 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Todas las cuentas están pagadas. Use el botón para mostrar las cuentas pagadas.</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+                }
             }
+
+            actualizarBotonMostrarPagadas('papa', pendientesPapa, pagadasPapa);
         }
 
         function renderizarTablaMama() {
@@ -841,13 +862,19 @@
             tbody.innerHTML = '';
             document.getElementById('label-mes-mama').textContent = mesActual;
 
-            let pendientesMama = 0;
-            baseDatosMama[mesActual].forEach((item, index) => {
+            const cuentasMama = baseDatosMama[mesActual];
+            const pendientesMama = cuentasMama.filter(item => item.estado === 'Pendiente').length;
+            const pagadasMama = cuentasMama.filter(item => item.estado === 'Pagado').length;
+            const mostrarPagadasMama = mostrarCuentasPagadasMama;
+
+            const cuentasVisibles = cuentasMama.filter(item => item.estado !== 'Pagado' || mostrarPagadasMama);
+            cuentasMama.forEach((item, index) => {
+                if (item.estado === 'Pagado' && !mostrarPagadasMama) return;
+
                 const tr = document.createElement('tr');
                 const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
                 const rowClass = item.estado === 'Pagado' ? 'row-paid' : 'row-pending';
                 tr.className = rowClass;
-                if (item.estado === 'Pendiente') pendientesMama += 1;
 
                 tr.innerHTML = `
                     <td data-label="Cuenta">
@@ -871,8 +898,40 @@
                 `;
                 tbody.appendChild(tr);
             });
-            if (pendientesMama === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+
+            if (cuentasVisibles.length === 0) {
+                if (pendientesMama === 0 && pagadasMama > 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Todas las cuentas están pagadas. Use el botón para mostrar las cuentas pagadas.</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+                }
+            }
+
+            actualizarBotonMostrarPagadas('mama', pendientesMama, pagadasMama);
+        }
+
+        function toggleMostrarPagadas(tipo) {
+            if (tipo === 'papa') {
+                mostrarCuentasPagadasPapa = !mostrarCuentasPagadasPapa;
+                renderizarTablaPapa();
+            } else {
+                mostrarCuentasPagadasMama = !mostrarCuentasPagadasMama;
+                renderizarTablaMama();
+            }
+        }
+
+        function actualizarBotonMostrarPagadas(tipo, pendientes, pagadas) {
+            const btn = document.getElementById(`btn-mostrar-pagadas-${tipo}`);
+            const mostrar = tipo === 'papa' ? mostrarCuentasPagadasPapa : mostrarCuentasPagadasMama;
+            if (!btn) return;
+
+            if (pendientes === 0 && pagadas > 0) {
+                btn.style.display = 'inline-flex';
+                btn.textContent = mostrar ? 'Ocultar cuentas pagadas' : 'Mostrar cuentas pagadas';
+            } else {
+                btn.style.display = 'none';
+                if (tipo === 'papa') mostrarCuentasPagadasPapa = false;
+                else mostrarCuentasPagadasMama = false;
             }
         }
 
