@@ -35,7 +35,8 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; }
+        html, body { min-height: 100%; height: 100%; }
+        body { background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; overflow-y: auto; }
 
         /* Sidebar */
         .sidebar { width: 260px; background-color: var(--bg-sidebar); padding: 20px 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; flex-shrink: 0; }
@@ -50,7 +51,7 @@
         .btn-logout:hover { background: #ff4757; color: white; }
 
         /* Main Content */
-        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow: visible; }
 
         /* Botones y Controles */
         .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; }
@@ -109,6 +110,13 @@
         .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
         .status-paid { color: #00f2c3; background: rgba(0, 242, 195, 0.1); border: 1px solid #00f2c3; }
         .status-pending { color: #ff8d72; background: rgba(255, 141, 114, 0.1); border: 1px solid #ff8d72; }
+        .row-paid { background: rgba(0, 242, 195, 0.08); }
+        .row-paid td { opacity: 0.85; }
+        .row-paid .input-concepto,
+        .row-paid input[type="number"],
+        .row-paid input[type="text"],
+        .row-paid select { background: rgba(0, 242, 195, 0.04); }
+        .row-pending { background: rgba(255, 141, 114, 0.04); }
         .rol-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
         .rol-admin { color: #e14eca; background: rgba(225, 78, 202, 0.1); border: 1px solid #e14eca; }
         .rol-usuario { color: #1d8cf8; background: rgba(29, 140, 248, 0.1); border: 1px solid #1d8cf8; }
@@ -160,10 +168,11 @@
 
         /* --- ESTILOS RESPONSIVOS PARA MÓVIL --- */
         @media (max-width: 768px) {
-            body { flex-direction: column; }
+            html, body { min-height: 100%; height: auto; }
+            body { flex-direction: column; overflow-y: auto; }
             .sidebar { position: fixed; left: -260px; top: 0; height: 100%; z-index: 2000; transition: 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
             .sidebar.active { left: 0; }
-            .main-content { padding: 15px; }
+            .main-content { padding: 15px; overflow: visible; }
             .charts-grid { grid-template-columns: 1fr; }
             .cards-grid { grid-template-columns: 1fr; }
 
@@ -172,13 +181,13 @@
             .table-container thead { display: none; }
             .table-container tbody { display: block; }
             .table-container tbody tr { display: block; margin-bottom: 16px; padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(255,255,255,0.03); }
-            .table-container td { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border: none; }
+            .table-container td { display: block; padding: 10px 0; border: none; }
             .table-container td + td { border-top: 1px solid rgba(255,255,255,0.08); }
-            .table-container td::before { content: attr(data-label); color: var(--text-muted); font-size: 0.82rem; flex: 1 1 100%; margin-right: 12px; white-space: normal; }
-            .table-container td > * { flex: 1 1 100%; min-width: 0; }
+            .table-container td::before { content: attr(data-label); color: var(--text-muted); font-size: 0.82rem; display: block; margin-bottom: 6px; white-space: normal; }
+            .table-container td > * { display: block; width: 100%; min-width: 0; }
             .table-container td input, .table-container td select, .table-container td button { width: 100%; }
-            .table-container td:last-child { flex-direction: column; align-items: flex-start; gap: 8px; }
-            .table-container td:last-child button { width: auto; }
+            .table-container td:last-child { padding-bottom: 0; }
+            .table-container td:last-child button { width: 100%; }
             .table-container td input.input-concepto { white-space: normal; overflow-wrap: anywhere; }
             .table-container tr td:first-child { padding-top: 0; }
         }
@@ -307,8 +316,11 @@
             </div>
 
             <div class="table-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Detalles de Facturación (Papá) - <span id="label-mes-papa">Enero</span></h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <h3>Detalles de Facturación (Papá) - <span id="label-mes-papa">Enero</span></h3>
+                        <button id="btn-mostrar-pagadas-papa" class="btn-agregar" onclick="toggleMostrarPagadas('papa')" style="display:none;">Mostrar cuentas pagadas</button>
+                    </div>
                     <button class="btn-agregar" onclick="abrirModal('papa')">➕ Agregar Cuenta</button>
                 </div>
                 <table>
@@ -359,8 +371,11 @@
             </div>
 
             <div class="table-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3>Detalles de Facturación (Mamá) - <span id="label-mes-mama">Enero</span></h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <h3>Detalles de Facturación (Mamá) - <span id="label-mes-mama">Enero</span></h3>
+                        <button id="btn-mostrar-pagadas-mama" class="btn-agregar" onclick="toggleMostrarPagadas('mama')" style="display:none;">Mostrar cuentas pagadas</button>
+                    </div>
                     <button class="btn-agregar" onclick="abrirModal('mama')">➕ Agregar Cuenta</button>
                 </div>
                 <table>
@@ -540,6 +555,8 @@
         function getBase(tipo) { return tipo === 'papa' ? baseDatosPapa : baseDatosMama; }
 
         let mesActual = 'Enero';
+        let mostrarCuentasPagadasPapa = false;
+        let mostrarCuentasPagadasMama = false;
         let barChart, doughnutChart, lineChartAnual, barChartGeneral;
         let graficosServiciosActivos = [];
         let tipoModalCuenta = 'papa';
@@ -792,12 +809,19 @@
             tbody.innerHTML = '';
             document.getElementById('label-mes-papa').textContent = mesActual;
 
-            let pendientesPapa = 0;
-            baseDatosPapa[mesActual].forEach((item, index) => {
-                if (item.estado === 'Pagado') return;
-                pendientesPapa += 1;
+            const cuentasPapa = baseDatosPapa[mesActual];
+            const pendientesPapa = cuentasPapa.filter(item => item.estado === 'Pendiente').length;
+            const pagadasPapa = cuentasPapa.filter(item => item.estado === 'Pagado').length;
+            const mostrarPagadasPapa = mostrarCuentasPagadasPapa;
+
+            const cuentasVisibles = cuentasPapa.filter(item => item.estado !== 'Pagado' || mostrarPagadasPapa);
+            cuentasPapa.forEach((item, index) => {
+                if (item.estado === 'Pagado' && !mostrarPagadasPapa) return;
+
                 const tr = document.createElement('tr');
-                const badgeClass = 'status-pending';
+                const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
+                const rowClass = item.estado === 'Pagado' ? 'row-paid' : 'row-pending';
+                tr.className = rowClass;
 
                 tr.innerHTML = `
                     <td data-label="Cuenta">
@@ -806,7 +830,7 @@
                     </td>
                     <td data-label="Monto (C$)"><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value, 'papa')"></td>
                     <td data-label="Estado">
-                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'papa', this)" style="margin-bottom:5px; width:100%;">
+                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'papa')" style="margin-bottom:5px; width:100%;">
                             <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Pagado" ${item.estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
                         </select>
@@ -821,9 +845,16 @@
                 `;
                 tbody.appendChild(tr);
             });
-            if (pendientesPapa === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+
+            if (cuentasVisibles.length === 0) {
+                if (pendientesPapa === 0 && pagadasPapa > 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Todas las cuentas están pagadas. Use el botón para mostrar las cuentas pagadas.</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+                }
             }
+
+            actualizarBotonMostrarPagadas('papa', pendientesPapa, pagadasPapa);
         }
 
         function renderizarTablaMama() {
@@ -831,12 +862,19 @@
             tbody.innerHTML = '';
             document.getElementById('label-mes-mama').textContent = mesActual;
 
-            let pendientesMama = 0;
-            baseDatosMama[mesActual].forEach((item, index) => {
-                if (item.estado === 'Pagado') return;
-                pendientesMama += 1;
+            const cuentasMama = baseDatosMama[mesActual];
+            const pendientesMama = cuentasMama.filter(item => item.estado === 'Pendiente').length;
+            const pagadasMama = cuentasMama.filter(item => item.estado === 'Pagado').length;
+            const mostrarPagadasMama = mostrarCuentasPagadasMama;
+
+            const cuentasVisibles = cuentasMama.filter(item => item.estado !== 'Pagado' || mostrarPagadasMama);
+            cuentasMama.forEach((item, index) => {
+                if (item.estado === 'Pagado' && !mostrarPagadasMama) return;
+
                 const tr = document.createElement('tr');
-                const badgeClass = 'status-pending';
+                const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
+                const rowClass = item.estado === 'Pagado' ? 'row-paid' : 'row-pending';
+                tr.className = rowClass;
 
                 tr.innerHTML = `
                     <td data-label="Cuenta">
@@ -845,7 +883,7 @@
                     </td>
                     <td data-label="Monto (C$)"><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value, 'mama')"></td>
                     <td data-label="Estado">
-                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'mama', this)" style="margin-bottom:5px; width:100%;">
+                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'mama')" style="margin-bottom:5px; width:100%;">
                             <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Pagado" ${item.estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
                         </select>
@@ -860,8 +898,40 @@
                 `;
                 tbody.appendChild(tr);
             });
-            if (pendientesMama === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+
+            if (cuentasVisibles.length === 0) {
+                if (pendientesMama === 0 && pagadasMama > 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Todas las cuentas están pagadas. Use el botón para mostrar las cuentas pagadas.</td></tr>';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">No hay cuentas pendientes para este mes.</td></tr>';
+                }
+            }
+
+            actualizarBotonMostrarPagadas('mama', pendientesMama, pagadasMama);
+        }
+
+        function toggleMostrarPagadas(tipo) {
+            if (tipo === 'papa') {
+                mostrarCuentasPagadasPapa = !mostrarCuentasPagadasPapa;
+                renderizarTablaPapa();
+            } else {
+                mostrarCuentasPagadasMama = !mostrarCuentasPagadasMama;
+                renderizarTablaMama();
+            }
+        }
+
+        function actualizarBotonMostrarPagadas(tipo, pendientes, pagadas) {
+            const btn = document.getElementById(`btn-mostrar-pagadas-${tipo}`);
+            const mostrar = tipo === 'papa' ? mostrarCuentasPagadasPapa : mostrarCuentasPagadasMama;
+            if (!btn) return;
+
+            if (pendientes === 0 && pagadas > 0) {
+                btn.style.display = 'inline-flex';
+                btn.textContent = mostrar ? 'Ocultar cuentas pagadas' : 'Mostrar cuentas pagadas';
+            } else {
+                btn.style.display = 'none';
+                if (tipo === 'papa') mostrarCuentasPagadasPapa = false;
+                else mostrarCuentasPagadasMama = false;
             }
         }
 
@@ -881,29 +951,15 @@
             temporizadorAutoguardado = setTimeout(() => { guardarEnFirebase(); }, 900);
         }
 
-        function actualizarDato(index, campo, valor, tipo, elemento = null) {
+        function actualizarDato(index, campo, valor, tipo) {
             const base = getBase(tipo);
             if (campo === 'monto') base[mesActual][index][campo] = parseFloat(valor) || 0;
             else base[mesActual][index][campo] = valor;
 
-            if (campo === 'estado' && valor === 'Pagado' && elemento) {
-                const fila = elemento.closest('tr');
-                if (fila) {
-                    fila.classList.add('fade-out-row');
-                    setTimeout(() => {
-                        if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
-                        actualizarDashboard();
-                    }, 260);
-                } else {
-                    if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
-                    actualizarDashboard();
-                }
-            } else {
-                actualizarDashboard();
-                if (campo === 'estado') {
-                    if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
-                }
+            if (campo === 'estado') {
+                if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
             }
+            actualizarDashboard();
             autoguardar();
         }
 
