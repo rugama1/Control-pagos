@@ -110,6 +110,13 @@
         .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
         .status-paid { color: #00f2c3; background: rgba(0, 242, 195, 0.1); border: 1px solid #00f2c3; }
         .status-pending { color: #ff8d72; background: rgba(255, 141, 114, 0.1); border: 1px solid #ff8d72; }
+        .row-paid { background: rgba(0, 242, 195, 0.08); }
+        .row-paid td { opacity: 0.85; }
+        .row-paid .input-concepto,
+        .row-paid input[type="number"],
+        .row-paid input[type="text"],
+        .row-paid select { background: rgba(0, 242, 195, 0.04); }
+        .row-pending { background: rgba(255, 141, 114, 0.04); }
         .rol-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: inline-block; }
         .rol-admin { color: #e14eca; background: rgba(225, 78, 202, 0.1); border: 1px solid #e14eca; }
         .rol-usuario { color: #1d8cf8; background: rgba(29, 140, 248, 0.1); border: 1px solid #1d8cf8; }
@@ -796,10 +803,11 @@
 
             let pendientesPapa = 0;
             baseDatosPapa[mesActual].forEach((item, index) => {
-                if (item.estado === 'Pagado') return;
-                pendientesPapa += 1;
                 const tr = document.createElement('tr');
-                const badgeClass = 'status-pending';
+                const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
+                const rowClass = item.estado === 'Pagado' ? 'row-paid' : 'row-pending';
+                tr.className = rowClass;
+                if (item.estado === 'Pendiente') pendientesPapa += 1;
 
                 tr.innerHTML = `
                     <td data-label="Cuenta">
@@ -808,7 +816,7 @@
                     </td>
                     <td data-label="Monto (C$)"><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value, 'papa')"></td>
                     <td data-label="Estado">
-                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'papa', this)" style="margin-bottom:5px; width:100%;">
+                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'papa')" style="margin-bottom:5px; width:100%;">
                             <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Pagado" ${item.estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
                         </select>
@@ -835,10 +843,11 @@
 
             let pendientesMama = 0;
             baseDatosMama[mesActual].forEach((item, index) => {
-                if (item.estado === 'Pagado') return;
-                pendientesMama += 1;
                 const tr = document.createElement('tr');
-                const badgeClass = 'status-pending';
+                const badgeClass = item.estado === 'Pagado' ? 'status-paid' : 'status-pending';
+                const rowClass = item.estado === 'Pagado' ? 'row-paid' : 'row-pending';
+                tr.className = rowClass;
+                if (item.estado === 'Pendiente') pendientesMama += 1;
 
                 tr.innerHTML = `
                     <td data-label="Cuenta">
@@ -847,7 +856,7 @@
                     </td>
                     <td data-label="Monto (C$)"><input type="number" min="0" value="${item.monto === 0 ? '' : item.monto}" oninput="actualizarDato(${index}, 'monto', this.value, 'mama')"></td>
                     <td data-label="Estado">
-                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'mama', this)" style="margin-bottom:5px; width:100%;">
+                        <select onchange="actualizarDato(${index}, 'estado', this.value, 'mama')" style="margin-bottom:5px; width:100%;">
                             <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                             <option value="Pagado" ${item.estado === 'Pagado' ? 'selected' : ''}>Pagado</option>
                         </select>
@@ -883,29 +892,15 @@
             temporizadorAutoguardado = setTimeout(() => { guardarEnFirebase(); }, 900);
         }
 
-        function actualizarDato(index, campo, valor, tipo, elemento = null) {
+        function actualizarDato(index, campo, valor, tipo) {
             const base = getBase(tipo);
             if (campo === 'monto') base[mesActual][index][campo] = parseFloat(valor) || 0;
             else base[mesActual][index][campo] = valor;
 
-            if (campo === 'estado' && valor === 'Pagado' && elemento) {
-                const fila = elemento.closest('tr');
-                if (fila) {
-                    fila.classList.add('fade-out-row');
-                    setTimeout(() => {
-                        if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
-                        actualizarDashboard();
-                    }, 260);
-                } else {
-                    if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
-                    actualizarDashboard();
-                }
-            } else {
-                actualizarDashboard();
-                if (campo === 'estado') {
-                    if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
-                }
+            if (campo === 'estado') {
+                if (tipo === 'papa') { renderizarTablaPapa(); } else { renderizarTablaMama(); }
             }
+            actualizarDashboard();
             autoguardar();
         }
 
