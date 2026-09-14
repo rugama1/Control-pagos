@@ -11,32 +11,32 @@
 
     <style>
         :root {
-            --bg-main: #1e1e2d;
-            --bg-sidebar: #151521;
-            --bg-card: #27293d;
-            --text-main: #ffffff;
-            --text-muted: #8b8b99;
-            --neon-pink: #e14eca;
-            --neon-blue: #1d8cf8;
-            --neon-cyan: #00f2fe;
+            --bg-main: #101a20;
+            --bg-sidebar: #0b1419;
+            --bg-card: #17262d;
+            --text-main: #f4f7f5;
+            --text-muted: #9aabb0;
+            --neon-pink: #f08a72;
+            --neon-blue: #3aa6b9;
+            --neon-cyan: #83d6c7;
             --border-color: rgba(255, 255, 255, 0.1);
         }
 
         body.light-theme {
-            --bg-main: #f5f7fb;
-            --bg-sidebar: #ffffff;
+            --bg-main: #eef4f2;
+            --bg-sidebar: #f9fcfb;
             --bg-card: #ffffff;
-            --text-main: #111827;
-            --text-muted: #4b5563;
-            --neon-pink: #db2777;
-            --neon-blue: #2563eb;
-            --neon-cyan: #0ea5e9;
+            --text-main: #183038;
+            --text-muted: #64777b;
+            --neon-pink: #d66b59;
+            --neon-blue: #287f91;
+            --neon-cyan: #218f83;
             --border-color: rgba(148, 163, 184, 0.25);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Segoe UI', Tahoma, sans-serif; }
         html, body { min-height: 100%; height: 100%; }
-        body { background-color: var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; overflow-y: auto; }
+        body { background: radial-gradient(circle at 100% 0%, rgba(58,166,185,0.12), transparent 32%), var(--bg-main); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; overflow-y: auto; }
 
         /* Sidebar */
         .sidebar { width: 260px; background-color: var(--bg-sidebar); padding: 20px 0; display: flex; flex-direction: column; border-right: 1px solid var(--border-color); transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; flex-shrink: 0; }
@@ -51,12 +51,13 @@
         .btn-logout:hover { background: #ff4757; color: white; }
 
         /* Main Content */
-        .main-content { flex: 1; padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow: visible; }
+        .main-content { flex: 1; max-width: 1680px; padding: 30px clamp(18px, 4vw, 52px); display: flex; flex-direction: column; gap: 20px; overflow: visible; }
 
         /* Botones y Controles */
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .periodo-activo { color: var(--neon-cyan); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
         .controls-header { display: flex; gap: 15px; align-items: center; flex-wrap: wrap;}
-        select { background-color: var(--bg-card); color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 10px 20px; border-radius: 8px; font-size: 1rem; outline: none; cursor: pointer; }
+        select { background-color: var(--bg-card); color: var(--neon-cyan); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-size: 1rem; outline: none; cursor: pointer; }
 
         .btn-cloud { background: linear-gradient(45deg, var(--neon-blue), var(--neon-cyan)); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 0 10px rgba(29, 140, 248, 0.3); }
         .btn-cloud:hover { transform: scale(1.03); box-shadow: 0 0 15px rgba(0, 242, 254, 0.6); }
@@ -229,9 +230,14 @@
             <div style="display:flex; align-items:center; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-menu" onclick="toggleSidebar()">☰</button>
                 <button class="btn-theme" onclick="toggleTheme()" id="btn-theme">☀️ Tema claro</button>
-                <h2 id="titulo-vista">Resumen General - by Mario Rugama</h2>
+                <div>
+                    <h2 id="titulo-vista">Resumen General</h2>
+                    <div class="periodo-activo">Control de pagos · <span id="periodo-activo">2026</span></div>
+                </div>
             </div>
             <div class="controls-header">
+                <select id="select-anio" onchange="cambiarAnio(this.value)" aria-label="Año de trabajo"></select>
+                <button class="btn-agregar" onclick="agregarAnio()">＋ Nuevo año</button>
                 <button class="btn-limpiar" onclick="limpiarDatos()">🧹 Limpiar todo</button>
                 <button class="btn-cloud" onclick="guardarEnFirebase()">☁️ Save cloud</button>
             </div>
@@ -500,6 +506,19 @@
         </div>
     </div>
 
+    <div id="modal-anio" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Nuevo año de trabajo</h3>
+            <p>El nuevo año comenzará con las cuentas base y sus 12 meses disponibles.</p>
+            <label for="input-nuevo-anio">Año</label>
+            <input type="number" id="input-nuevo-anio" min="2000" max="2200" placeholder="Ej. 2027">
+            <div class="modal-buttons">
+                <button class="btn-cancelar" onclick="cerrarModalAnio()">Cancelar</button>
+                <button class="btn-cloud" onclick="guardarNuevoAnio()">Crear año</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal agregar/editar usuario -->
     <div id="modal-usuario" class="modal-overlay">
         <div class="modal-content">
@@ -545,12 +564,18 @@
         ];
         const conceptosBaseMama = []; // Se agregan manualmente con el botón "Agregar Cuenta"
 
-        let baseDatosPapa = {};
-        let baseDatosMama = {};
-        meses.forEach(mes => {
-            baseDatosPapa[mes] = conceptosBasePapa.map(concepto => ({ concepto: concepto, monto: 0, estado: 'Pendiente', detalles: '' }));
-            baseDatosMama[mes] = conceptosBaseMama.map(concepto => ({ concepto: concepto, monto: 0, estado: 'Pendiente', detalles: '' }));
-        });
+        const anioInicial = new Date().getFullYear();
+        function crearBaseAnual(conceptos) {
+            const base = {};
+            meses.forEach(mes => {
+                base[mes] = conceptos.map(concepto => ({ concepto: concepto, monto: 0, estado: 'Pendiente', detalles: '' }));
+            });
+            return base;
+        }
+        let baseDatosPapa = crearBaseAnual(conceptosBasePapa);
+        let baseDatosMama = crearBaseAnual(conceptosBaseMama);
+        let anioActual = anioInicial;
+        let datosPorAnio = { [anioInicial]: { papa: baseDatosPapa, mama: baseDatosMama } };
 
         function getBase(tipo) { return tipo === 'papa' ? baseDatosPapa : baseDatosMama; }
 
@@ -944,6 +969,57 @@
             actualizarDashboard();
         }
 
+        function renderizarSelectorAnios() {
+            const selector = document.getElementById('select-anio');
+            selector.innerHTML = Object.keys(datosPorAnio).sort((a, b) => b - a)
+                .map(anio => `<option value="${anio}" ${Number(anio) === anioActual ? 'selected' : ''}>Año ${anio}</option>`).join('');
+            document.getElementById('periodo-activo').textContent = anioActual;
+        }
+
+        function cambiarAnio(valor) {
+            const nuevoAnio = Number(valor);
+            if (!datosPorAnio[nuevoAnio]) {
+                datosPorAnio[nuevoAnio] = { papa: crearBaseAnual(conceptosBasePapa), mama: crearBaseAnual(conceptosBaseMama) };
+            }
+            anioActual = nuevoAnio;
+            baseDatosPapa = datosPorAnio[anioActual].papa;
+            baseDatosMama = datosPorAnio[anioActual].mama;
+            renderizarSelectorAnios();
+            renderizarTablaPapa();
+            renderizarTablaMama();
+            actualizarDashboard();
+            if (document.getElementById('vista-reportes').classList.contains('active')) generarReporte();
+            if (document.getElementById('vista-analisis').classList.contains('active')) generarAnalisisAnual();
+        }
+
+        function agregarAnio() {
+            const input = document.getElementById('input-nuevo-anio');
+            input.value = anioActual + 1;
+            document.getElementById('modal-anio').classList.add('active');
+            input.focus();
+        }
+
+        function cerrarModalAnio() {
+            document.getElementById('modal-anio').classList.remove('active');
+        }
+
+        function guardarNuevoAnio() {
+            const nuevoAnio = Number(document.getElementById('input-nuevo-anio').value);
+            if (!Number.isInteger(nuevoAnio) || nuevoAnio < 2000 || nuevoAnio > 2200) {
+                alert('Ingrese un año válido entre 2000 y 2200.');
+                return;
+            }
+            if (datosPorAnio[nuevoAnio]) {
+                cerrarModalAnio();
+                cambiarAnio(nuevoAnio);
+                return;
+            }
+            datosPorAnio[nuevoAnio] = { papa: crearBaseAnual(conceptosBasePapa), mama: crearBaseAnual(conceptosBaseMama) };
+            cerrarModalAnio();
+            cambiarAnio(nuevoAnio);
+            guardarEnFirebase();
+        }
+
         // --- Autoguardado en la nube (con retraso para no saturar Firebase mientras se escribe) ---
         let temporizadorAutoguardado = null;
         function autoguardar() {
@@ -1203,13 +1279,14 @@
         }
 
         function guardarEnFirebase() {
-            db.collection("usuarios").doc("cuenta_principal").set({ datosAnuales: baseDatosPapa, datosAnualesMama: baseDatosMama })
+            datosPorAnio[anioActual] = { papa: baseDatosPapa, mama: baseDatosMama };
+            db.collection("usuarios").doc("cuenta_principal").set({ datosPorAnio, datosAnuales: baseDatosPapa, datosAnualesMama: baseDatosMama })
             .then(() => mostrarToast())
             .catch(err => console.error("Error: ", err));
         }
 
         function limpiarDatos() {
-            if (confirm("¿Estás seguro de que deseas limpiar todos los datos del año? Esta acción no se puede deshacer.")) {
+            if (confirm(`¿Estás seguro de que deseas limpiar todos los datos de ${anioActual}? Esta acción no se puede deshacer.`)) {
                 meses.forEach(mes => {
                     baseDatosPapa[mes].forEach(item => {
                         item.monto = 0; item.estado = 'Pendiente'; item.detalles = '';
@@ -1228,9 +1305,17 @@
         function cargarDesdeFirebase() {
             db.collection("usuarios").doc("cuenta_principal").get().then((doc) => {
                 if (doc.exists) {
-                    if (doc.data().datosAnuales) baseDatosPapa = doc.data().datosAnuales;
-                    if (doc.data().datosAnualesMama) baseDatosMama = doc.data().datosAnualesMama;
+                    const datos = doc.data();
+                    if (datos.datosPorAnio) {
+                        datosPorAnio = datos.datosPorAnio;
+                    } else if (datos.datosAnuales || datos.datosAnualesMama) {
+                        datosPorAnio = { [anioInicial]: { papa: datos.datosAnuales || crearBaseAnual(conceptosBasePapa), mama: datos.datosAnualesMama || crearBaseAnual(conceptosBaseMama) } };
+                    }
                 }
+                if (!datosPorAnio[anioActual]) datosPorAnio[anioActual] = { papa: crearBaseAnual(conceptosBasePapa), mama: crearBaseAnual(conceptosBaseMama) };
+                baseDatosPapa = datosPorAnio[anioActual].papa;
+                baseDatosMama = datosPorAnio[anioActual].mama;
+                renderizarSelectorAnios();
                 renderizarTablaPapa();
                 renderizarTablaMama();
                 actualizarDashboard();
